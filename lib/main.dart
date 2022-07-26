@@ -51,12 +51,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int counter = 0;
-  TextEditingController _saveCountController = TextEditingController();
+  String nameOfCounter = 'Untitled';
+  final TextEditingController _saveCountController = TextEditingController();
 
 
-  Future<void> _changeCounter() async {
+  Future<void> _changeCounter([int count = 0]) async {
     try {
-      final int result = await MyHomePage.platform.invokeMethod('changeCount');
+      final int result = await MyHomePage.platform.invokeMethod('changeCount', {'count': count});
       //print('count change to $result.');
       setState((){
         counter=result;
@@ -91,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (context, ThemeModel themeNotifier, child){
         return Scaffold(
           appBar: AppBar(
-            title: Text('Untitled'),
+            title: Text(nameOfCounter),
             actions: [
               IconButton(
                   icon: Icon(themeNotifier.isDark
@@ -132,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   title: Text('Сохраните текущее значение: $counter'),
                   content: TextField(
                     controller: _saveCountController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Название'
                     ),
                   ),
@@ -143,8 +144,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       //var data = jsonDecode(data);
                       Box<Saves> contactsBox = Hive.box<Saves>(HiveBoxes.saves);
                       contactsBox.add(Saves(name: _saveCountController.text, num: counter));
+                      setState((){
+                        nameOfCounter = _saveCountController.text;
+                      });
                       _saveCountController.text = '';
                       Navigator.of(context).pop(); // закрыть все модалки
+
                     }, child: const Text('Сохранить'))
                   ],
                 );
@@ -179,19 +184,25 @@ class _MyHomePageState extends State<MyHomePage> {
               itemCount: isEmpty ? 1 : box.values.length,
               itemBuilder: (BuildContext context, int index) {
                 Saves? res = isEmpty ? null : box.getAt(index);
-                return Dismissible(
-                  background: Container(color: Colors.red),
-                  key: UniqueKey(),
-                  onDismissed: (direction) {
-                    if(!isEmpty) res?.delete();
-                  },
-                  child: ListTile(
+                return ListTile(
                       title: isEmpty ? const Text('Нет сохранений') : Text('${res?.name}: ${res?.num}'),
                       leading: const Icon(Icons.save_as_outlined),
                       onTap: () {
-                        if(!isEmpty) res?.delete();
-                      }),
-                );
+                        showDialog(context: context, builder: (BuildContext context){
+                          return AlertDialog(
+                            title: Text('Продолжить счетчик "${res?.name}": ${res?.num}?'),
+                            actions: [
+                              ElevatedButton(onPressed: () async{
+                                _changeCounter(res?.num as int);
+                                setState((){
+                                  nameOfCounter = res?.name as String;
+                                });
+                                Navigator.of(context).pop(); // закрыть все модалки
+                              }, child: const Text('Продолжить'))
+                            ],
+                          );
+                        });
+                      });
                 // return ListTile(
                 //   leading: const Icon(Icons.save_as_outlined),
                 //   title: isEmpty ?  Text('Нет сохранений') : Text('Item $index'),

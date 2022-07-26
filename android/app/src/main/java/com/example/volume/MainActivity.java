@@ -22,6 +22,10 @@ public class MainActivity extends FlutterActivity {
         new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), CHANNEL)
                 .setMethodCallHandler(
                         (call, result) -> {
+                            int count = call.argument("count");
+                            if (count != 0){
+                                c = count;
+                            }
                             result.success(c);
 
                         }
