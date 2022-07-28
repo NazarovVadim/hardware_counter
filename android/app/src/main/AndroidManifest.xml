@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.volume">
+   <uses-permission android:name="android.permission.VIBRATE"/>
    <application
         android:label="volume"
         android:name="${applicationName}"

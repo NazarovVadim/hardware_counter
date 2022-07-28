@@ -23,7 +23,8 @@ public class MainActivity extends FlutterActivity {
                 .setMethodCallHandler(
                         (call, result) -> {
                             int count = call.argument("count");
-                            if (count != 0){
+                            Boolean isPrimary = call.argument("isPrimary");
+                            if (isPrimary){
                                 c = count;
                             }
                             result.success(c);
